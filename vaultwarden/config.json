@@ -1,0 +1,43 @@
+{
+    "name": "Vaultwarden",
+    "version": "1.0.0",
+    "slug": "vaultwarden",
+    "description": "Self-hosted Vaultwarden as HA add-on",
+    
+    "arch": [
+      "amd64",
+      "armv7",
+      "armhf",
+      "aarch64"
+    ],
+    
+    "startup": "services",
+    "boot": "auto",
+    
+    "ports": {
+      "8080/tcp": 8080
+    },
+  
+    "map": [
+      "config:rw",
+      "data:rw",
+      "ssl:rw"
+    ],
+  
+    "options": {
+      "DATABASE_URL": "sqlite:///data/db.sqlite3",
+      "ADMIN_TOKEN": "",
+      "ROCKET_ADDRESS": "0.0.0.0",
+      "ROCKET_PORT": 8080
+    },
+  
+    "schema": {
+      "DATABASE_URL": "str",
+      "ADMIN_TOKEN": "str",
+      "ROCKET_ADDRESS": "str",
+      "ROCKET_PORT": "int"
+    },
+  
+    "webui": "http://[HOST]:[PORT:8080]"
+  }
+  
