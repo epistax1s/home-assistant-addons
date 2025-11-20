@@ -1,5 +1,6 @@
 {
-    "name": "epistax1s custom add-ons",
+    "name": "Epistax1s Custom add-ons",
     "url": "https://github.com/epistax1s/home-assistant-addons",
-    "maintainer": "epistax1s <https://github.com/epistax1s>"
+    "maintainer": "epistax1s <https://github.com/epistax1s>",
+    "version": "1.0"
 }
