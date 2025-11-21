@@ -1,0 +1,52 @@
+name: "Vaultwarden"
+version: "1.0.5"
+slug: vaultwarden
+description: "Self-hosted Vaultwarden (Bitwarden server) HA add-on"
+url: "https://github.com/epistax1s/home-assistant-addons"
+issue_tracker: "https://github.com/epistax1s/home-assistant-addons/issues"
+
+arch:
+  - aarch64
+  - amd64
+  - armv7
+  - armhf
+
+startup: services  # Контейнер как сервис
+boot: auto
+init: false  # Нет init-скриптов
+host_network: true  # Доступ по IP HA без портов
+
+map:
+  - addon_config:rw  # /config/vaultwarden в контейнере
+  - ssl:rw           # Для SSL certs (если HTTPS)
+
+ports:
+  80/tcp: null  # Для ROCKET_PORT, но не expose (host_network)
+
+options:  # Дефолты — пользователь меняет в UI
+  domain: "http://192.168.0.133:80"  # Обязательно с :80!
+  rocket_port: 80
+  admin_token: ""  # Пусто = генерируем в run.sh
+  data_folder: "/config/vaultwarden"
+  database_url: "sqlite:///config/vaultwarden/db.sqlite3"
+  websocket_enabled: true
+  signups_allowed: false
+  invitations_allowed: true
+  emergency_access_allowed: true
+  sends_allowed: true
+
+schema:  # Валидация UI
+  domain: "str"  # Обязательный, напомни в README про http://:80
+  rocket_port: "port"
+  admin_token: "password?"
+  data_folder: "str?"
+  database_url: "str?"
+  websocket_enabled: "bool"
+  signups_allowed: "bool"
+  invitations_allowed: "bool"
+  emergency_access_allowed: "bool"
+  sends_allowed: "bool"
+
+environment:  # Статические vars (без ${} — они не работают стабильно)
+  ROCKET_ADDRESS: "0.0.0.0"  # Всегда фиксировано
+  # Остальное парсим в run.sh — не здесь!

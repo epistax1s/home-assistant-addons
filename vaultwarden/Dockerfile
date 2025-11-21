@@ -1,11 +1,17 @@
-FROM vaultwarden/server:latest
+ARG BUILD_FROM=vaultwarden/server:latest
 
-# Скрипт для дампа env в stdout (логи HA)
-RUN echo '#!/bin/sh' > /entrypoint.sh && \
-    echo 'echo "=== DUMPING ENV VARS ===" && env | sort' >> /entrypoint.sh && \
-    echo 'echo "DOMAIN specifically: $DOMAIN"' >> /entrypoint.sh && \
-    echo 'exec "$@"' >> /entrypoint.sh && \
-    chmod +x /entrypoint.sh
+# Используем HA base для bashio (apk add bash jq openssl)
+FROM $BUILD_FROM
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["server"]
+# Установка зависимостей для run.sh
+RUN apk add --no-cache \
+    bash \
+    jq \
+    openssl
+
+# Копируем run.sh
+COPY run.sh /run.sh
+RUN chmod a+x /run.sh
+
+# Запуск через run.sh (парсит config и запускает Vaultwarden)
+ENTRYPOINT ["/run.sh"]
