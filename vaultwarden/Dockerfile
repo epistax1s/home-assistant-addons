@@ -1,19 +1,17 @@
-# Dockerfile: Собирает образ аддона.
-# ARG BUILD_FROM: Авто-подставляется HA для архитектуры (2025 стандарт).
-# FROM: Официальный HA base с S6-overlay, bashio, with-contenv.
-# COPY --from: Копируем только нужное из vaultwarden/server (бинарник и web-vault).
-# COPY rootfs /: Копирует S6-структуру в контейнер.
-# RUN chmod: Делает run исполняемым (хорошая практика, хотя S6 может обработать).
-
+# ===== Базовый образ Home Assistant Add-on =====
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-addon-base:16.0.0
 FROM ${BUILD_FROM}
 
-COPY --from=vaultwarden/server:amd64 /vaultwarden /usr/bin/vaultwarden
-COPY --from=vaultwarden/server:amd64 /web-vault /web-vault
+# ===== Устанавливаем утилиты для отладки =====
+RUN apk add --no-cache bash openssl file
 
-# Копируем S6-структуру HA (правильную)
-COPY rootfs /
+# ===== Копируем бинарь и веб-интерфейс Vaultwarden =====
+COPY --from=vaultwarden/server:latest /vaultwarden /usr/bin/vaultwarden
+COPY --from=vaultwarden/server:latest /web-vault /web-vault
 
-# Делаем исполняемым (run + init)
+# ===== Копируем структуру HA add-on (S6 + cont-init) =====
+COPY rootfs/ /
+
+# ===== Делаем исполняемыми скрипты =====
 RUN chmod -R a+x /etc/cont-init.d /etc/services.d
 
