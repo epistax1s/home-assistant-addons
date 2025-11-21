@@ -19,6 +19,6 @@ RUN echo "===== DEBUG S6 TREE =====" \
     && find /etc/s6 -maxdepth 5 -print || true \
     && echo "===== END DEBUG ====="
 
-
 # Делаем исполняемым (обязательно)
-RUN chmod a+x /etc/s6/services/vaultwarden/run
+RUN chmod -R +x /etc/cont-init.d /etc/s6/services || true
+
