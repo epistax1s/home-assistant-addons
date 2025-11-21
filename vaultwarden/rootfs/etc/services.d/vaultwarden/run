@@ -1,8 +1,31 @@
 #!/usr/bin/with-contenv bashio
 
-bashio::log.info "Starting Vaultwarden add-on v1.0.5 (debug mode)..."
+# ===== INFO =====
+bashio::log.info "-----------------------------------------"
+bashio::log.info "Starting Vaultwarden add-on v1.0.5 (debug mode)"
+bashio::log.info "-----------------------------------------"
 
-# config как у тебя
+# ===== Проверка бинарей =====
+if [[ ! -f "/usr/bin/vaultwarden" ]]; then
+    bashio::log.error "/usr/bin/vaultwarden не найден!"
+    ls -l /usr/bin || true
+    exit 1
+fi
+
+bashio::log.info "Проверка архитектуры /usr/bin/vaultwarden:"
+file /usr/bin/vaultwarden || true
+
+if [[ ! -x "/usr/bin/vaultwarden" ]]; then
+    bashio::log.error "/usr/bin/vaultwarden не исполняемый!"
+    ls -l /usr/bin/vaultwarden
+    exit 1
+fi
+
+if ! command -v openssl >/dev/null 2>&1; then
+    bashio::log.warning "openssl не найден! Некоторые функции будут сгенерированы без него."
+fi
+
+# ===== Чтение конфигурации из UI =====
 DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
 ROCKET_PORT=$(bashio::config 'rocket_port' '80')
 ADMIN_TOKEN=$(bashio::config 'admin_token')
@@ -14,34 +37,44 @@ INVITATIONS_ALLOWED=$(bashio::config 'invitations_allowed' 'true')
 EMERGENCY_ACCESS_ALLOWED=$(bashio::config 'emergency_access_allowed' 'true')
 SENDS_ALLOWED=$(bashio::config 'sends_allowed' 'true')
 
+# ===== Генерация ADMIN_TOKEN, если не задан =====
 if [[ -z "$ADMIN_TOKEN" ]]; then
-    ADMIN_TOKEN=$(openssl rand -base64 48) || true
-    bashio::log.warning "No ADMIN_TOKEN set — generated (showing prefix): ${ADMIN_TOKEN:0:20}..."
+    if command -v openssl >/dev/null 2>&1; then
+        ADMIN_TOKEN=$(openssl rand -base64 48) || true
+        bashio::log.warning "ADMIN_TOKEN не задан — сгенерирован: ${ADMIN_TOKEN:0:20}..."
+    else
+        ADMIN_TOKEN="changeme"
+        bashio::log.warning "openssl не найден — ADMIN_TOKEN установлен как 'changeme'"
+    fi
 fi
 
-export DOMAIN ROCKET_PORT ADMIN_TOKEN DATA_FOLDER DATABASE_URL WEBSOCKET_ENABLED SIGNUPS_ALLOWED INVITATIONS_ALLOWED EMERGENCY_ACCESS_ALLOWED SENDS_ALLOWED
+# ===== Экспорт переменных окружения =====
+export DOMAIN ROCKET_PORT ADMIN_TOKEN DATA_FOLDER DATABASE_URL WEBSOCKET_ENABLED \
+       SIGNUPS_ALLOWED INVITATIONS_ALLOWED EMERGENCY_ACCESS_ALLOWED SENDS_ALLOWED
 export ROCKET_ADDRESS="0.0.0.0"
 
+# ===== Вывод для отладки =====
 bashio::log.info "=== DEBUG ENV EXPORTED ==="
 bashio::log.info "DOMAIN: $DOMAIN"
 bashio::log.info "ROCKET_PORT: $ROCKET_PORT"
 bashio::log.info "DATA_FOLDER: $DATA_FOLDER"
 bashio::log.info "DATABASE_URL: $DATABASE_URL"
 bashio::log.info "ROCKET_ADDRESS: $ROCKET_ADDRESS"
-bashio::log.info "========================="
+bashio::log.info "WEBSOCKET_ENABLED: $WEBSOCKET_ENABLED"
+bashio::log.info "SIGNUPS_ALLOWED: $SIGNUPS_ALLOWED"
+bashio::log.info "INVITATIONS_ALLOWED: $INVITATIONS_ALLOWED"
+bashio::log.info "EMERGENCY_ACCESS_ALLOWED: $EMERGENCY_ACCESS_ALLOWED"
+bashio::log.info "SENDS_ALLOWED: $SENDS_ALLOWED"
+bashio::log.info "ADMIN_TOKEN: ${ADMIN_TOKEN:0:20}..."
+bashio::log.info "==========================="
 
-# Диагностика перед exec
-if [[ ! -x "/usr/bin/vaultwarden" ]]; then
-    bashio::log.error "/usr/bin/vaultwarden отсутствует или не исполняемый!"
-    ls -l /usr/bin || true
-    # вывести содержимое errno
-    bashio::log.error "Выход."
-    exit 1
-fi
+# ===== Диагностика перед запуском Vaultwarden =====
+bashio::log.info "Проверка доступа к бинарю Vaultwarden..."
+ls -l /usr/bin/vaultwarden || true
 
-bashio::log.info "About to exec /usr/bin/vaultwarden (trial --version)..."
-# Попробуем вывести версию — если бинарь падает, увидим почему
+bashio::log.info "Попытка выполнить /usr/bin/vaultwarden --version..."
 /usr/bin/vaultwarden --version || bashio::log.error "Выполнение --version завершилось с ошибкой"
 
-# Наконец — exec основного процесса
+# ===== Запуск Vaultwarden =====
+bashio::log.info "Исполняем /usr/bin/vaultwarden..."
 exec /usr/bin/vaultwarden
