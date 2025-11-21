@@ -5,15 +5,14 @@
 # COPY rootfs /: Копирует S6-структуру в контейнер.
 # RUN chmod: Делает run исполняемым (хорошая практика, хотя S6 может обработать).
 
-ARG BUILD_FROM=ghcr.io/home-assistant/amd64-addon-base:16.0.0  # Замени amd64 на твою arch (aarch64/armv7 и т.д.).
+ARG BUILD_FROM=ghcr.io/home-assistant/amd64-addon-base:16.0.0
 FROM ${BUILD_FROM}
 
-# Копируем бинарник и веб-интерфейс Vaultwarden.
 COPY --from=vaultwarden/server:latest /vaultwarden /usr/bin/vaultwarden
 COPY --from=vaultwarden/server:latest /web-vault /web-vault
 
-# Копируем S6-структуру (rootfs) в контейнер.
+# Копируем S6-структуру в НОВОЕ место
 COPY rootfs /
 
-# Делаем скрипт запуска исполняемым.
-RUN chmod a+x /etc/s6-overlay/s6-rc.d/vaultwarden/run
+# Делаем исполняемым (обязательно)
+RUN chmod a+x /etc/s6/services/vaultwarden/run
