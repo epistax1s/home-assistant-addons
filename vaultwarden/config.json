@@ -21,7 +21,7 @@
     "DATA_FOLDER": "/config/vaultwarden",
     "DATABASE_URL": "sqlite:///config/vaultwarden/db.sqlite3",
     "ADMIN_TOKEN": "",
-    "DOMAIN": "http://192.168.1.100:80", 
+    "DOMAIN": "http://192.168.1.100", 
     "ROCKET_PORT": 80,
     "WEBSOCKET_ENABLED": true,
     "SIGNUPS_ALLOWED": false,
