@@ -1,0 +1,57 @@
+#!/usr/bin/with-contenv bashio  # Обязательная первая строка: запускает в HA окружении с bashio.
+
+set -e  # Выходим при любой ошибке (стандарт для S6-скриптов).
+
+# Логирование старта (bashio::log — стандарт HA, выводит в UI logs).
+bashio::log.info "Starting Vaultwarden add-on v1.0.5..."
+
+# Чтение опций из /data/options.json с дефолтами (bashio::config 'key' 'default').
+# Это гарантирует, что vars всегда заданы, даже если UI пусто.
+DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
+ROCKET_PORT=$(bashio::config 'rocket_port' '80')
+ADMIN_TOKEN=$(bashio::config 'admin_token')
+DATA_FOLDER=$(bashio::config 'data_folder' '/config/vaultwarden')
+DATABASE_URL=$(bashio::config 'database_url' "sqlite://${DATA_FOLDER}/db.sqlite3")
+WEBSOCKET_ENABLED=$(bashio::config 'websocket_enabled' 'true')
+SIGNUPS_ALLOWED=$(bashio::config 'signups_allowed' 'false')
+INVITATIONS_ALLOWED=$(bashio::config 'invitations_allowed' 'true')
+EMERGENCY_ACCESS_ALLOWED=$(bashio::config 'emergency_access_allowed' 'true')
+SENDS_ALLOWED=$(bashio::config 'sends_allowed' 'true')
+
+# Генерация ADMIN_TOKEN, если не задан (openssl из HA base).
+if [[ -z "$ADMIN_TOKEN" ]]; then
+    ADMIN_TOKEN=$(openssl rand -base64 48)
+    bashio::log.warning "No ADMIN_TOKEN set in UI! Generated: $ADMIN_TOKEN"
+    bashio::log.info "Save this token for /admin access!"
+fi
+
+# Экспорт всех vars в env (теперь доступны для /usr/bin/vaultwarden).
+export DOMAIN
+export ROCKET_PORT
+export ADMIN_TOKEN
+export DATA_FOLDER
+export DATABASE_URL
+export WEBSOCKET_ENABLED
+export SIGNUPS_ALLOWED
+export INVITATIONS_ALLOWED
+export EMERGENCY_ACCESS_ALLOWED
+export SENDS_ALLOWED
+export ROCKET_ADDRESS="0.0.0.0"  # Фиксировано (как в твоём оригинале).
+
+# Дамп для дебага (удали после теста — выводит в logs аддона).
+bashio::log.info "=== DEBUG ENV EXPORTED ==="
+bashio::log.info "DOMAIN: $DOMAIN"
+bashio::log.info "ROCKET_PORT: $ROCKET_PORT"
+bashio::log.info "ADMIN_TOKEN: ${ADMIN_TOKEN:0:20}..."  # Не полный, для безопасности.
+bashio::log.info "DATA_FOLDER: $DATA_FOLDER"
+bashio::log.info "DATABASE_URL: $DATABASE_URL"
+bashio::log.info "WEBSOCKET_ENABLED: $WEBSOCKET_ENABLED"
+bashio::log.info "SIGNUPS_ALLOWED: $SIGNUPS_ALLOWED"
+bashio::log.info "INVITATIONS_ALLOWED: $INVITATIONS_ALLOWED"
+bashio::log.info "EMERGENCY_ACCESS_ALLOWED: $EMERGENCY_ACCESS_ALLOWED"
+bashio::log.info "SENDS_ALLOWED: $SENDS_ALLOWED"
+bashio::log.info "ROCKET_ADDRESS: $ROCKET_ADDRESS"
+bashio::log.info "========================="
+
+# Запуск Vaultwarden (exec — заменяет процесс, чтобы S6 держал его как longrun).
+exec /usr/bin/vaultwarden

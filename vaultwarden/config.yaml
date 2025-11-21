@@ -1,9 +1,16 @@
-name: "Vaultwarden"
-version: "1.0.5"
-slug: vaultwarden
-description: "Self-hosted Vaultwarden (Bitwarden server) HA add-on"
-url: "https://github.com/epistax1s/home-assistant-addons"
-issue_tracker: "https://github.com/epistax1s/home-assistant-addons/issues"
+# config.yaml: Определяет метаданные аддона, опции UI и маппинги.
+# Required: name, version, slug, description, arch.
+# init: false - обязательно для S6-overlay (отключает Docker init).
+# host_network: true - для доступа по IP HA.
+# map: Для монтирования папок (/config/vaultwarden в контейнере).
+# ports: Для ROCKET_PORT (null = не expose снаружи).
+# options/schema: Дефолты и валидация UI (все твои vars, с ? для optional).
+
+name: Vaultwarden
+version: "1.0.5"  # Бампь при обновлениях (тэг для Docker image).
+slug: vaultwarden  # Уникальный ID (используется в Supervisor).
+description: "Self-hosted Vaultwarden (Bitwarden compatible server) as HA add-on"
+url: "https://github.com/epistax1s/home-assistant-addons"  # Твой репозиторий.
 
 arch:
   - aarch64
@@ -11,22 +18,22 @@ arch:
   - armv7
   - armhf
 
-startup: services  # Контейнер как сервис
-boot: auto
-init: false  # Нет init-скриптов
-host_network: true  # Доступ по IP HA без портов
+startup: services  # Запуск как сервис (после системы, перед приложениями).
+boot: auto  # Автостарт при загрузке HA.
+init: false  # Отключает Docker init (требуется для S6-overlay).
+host_network: true  # Аддон использует сеть хоста (доступ по IP:80).
 
 map:
-  - addon_config:rw  # /config/vaultwarden в контейнере
-  - ssl:rw           # Для SSL certs (если HTTPS)
+  - addon_config:rw  # Монтирует /config/vaultwarden для данных.
+  - ssl:rw  # Для SSL certs, если включишь HTTPS.
 
 ports:
-  80/tcp: null  # Для ROCKET_PORT, но не expose (host_network)
+  80/tcp: null  # Порт для ROCKET_PORT (null = не expose, но доступен локально).
 
-options:  # Дефолты — пользователь меняет в UI
-  domain: "http://192.168.0.133:80"  # Обязательно с :80!
+options:  # Дефолты для UI (пользователь может изменить).
+  domain: "http://192.168.0.133:80"  # С протоколом и портом (избежать ошибок парсинга).
   rocket_port: 80
-  admin_token: ""  # Пусто = генерируем в run.sh
+  admin_token: ""
   data_folder: "/config/vaultwarden"
   database_url: "sqlite:///config/vaultwarden/db.sqlite3"
   websocket_enabled: true
@@ -35,18 +42,14 @@ options:  # Дефолты — пользователь меняет в UI
   emergency_access_allowed: true
   sends_allowed: true
 
-schema:  # Валидация UI
-  domain: "str"  # Обязательный, напомни в README про http://:80
-  rocket_port: "port"
-  admin_token: "password?"
-  data_folder: "str?"
-  database_url: "str?"
-  websocket_enabled: "bool"
-  signups_allowed: "bool"
-  invitations_allowed: "bool"
-  emergency_access_allowed: "bool"
-  sends_allowed: "bool"
-
-environment:  # Статические vars (без ${} — они не работают стабильно)
-  ROCKET_ADDRESS: "0.0.0.0"  # Всегда фиксировано
-  # Остальное парсим в run.sh — не здесь!
+schema:  # Валидация UI (типы, ? = optional).
+  domain: str  # Обязательный (UI не даст сохранить без него).
+  rocket_port: port
+  admin_token: password?
+  data_folder: str?
+  database_url: str?
+  websocket_enabled: bool
+  signups_allowed: bool
+  invitations_allowed: bool
+  emergency_access_allowed: bool
+  sends_allowed: bool
