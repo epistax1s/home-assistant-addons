@@ -1,19 +1,33 @@
 #!/usr/bin/with-contenv bashio
+set -e
+set -x
 
 # ===== INFO =====
 bashio::log.info "-----------------------------------------"
 bashio::log.info "Starting Vaultwarden add-on v1.0.5 (debug mode)"
 bashio::log.info "-----------------------------------------"
 
-# ===== Проверка бинарей =====
+# ===== Проверка утилит =====
+bashio::log.info "Проверка наличия openssl и file..."
+if ! command -v openssl >/dev/null 2>&1; then
+    bashio::log.warning "openssl не найден! Некоторые функции будут сгенерированы без него."
+else
+    bashio::log.info "openssl найден."
+fi
+
+if ! command -v file >/dev/null 2>&1; then
+    bashio::log.warning "file не найден! Не смогу показать архитектуру бинаря."
+else
+    bashio::log.info "file найден."
+fi
+
+# ===== Проверка бинаря Vaultwarden =====
+bashio::log.info "Проверка бинаря /usr/bin/vaultwarden..."
 if [[ ! -f "/usr/bin/vaultwarden" ]]; then
     bashio::log.error "/usr/bin/vaultwarden не найден!"
     ls -l /usr/bin || true
     exit 1
 fi
-
-bashio::log.info "Проверка архитектуры /usr/bin/vaultwarden:"
-file /usr/bin/vaultwarden || true
 
 if [[ ! -x "/usr/bin/vaultwarden" ]]; then
     bashio::log.error "/usr/bin/vaultwarden не исполняемый!"
@@ -21,11 +35,12 @@ if [[ ! -x "/usr/bin/vaultwarden" ]]; then
     exit 1
 fi
 
-if ! command -v openssl >/dev/null 2>&1; then
-    bashio::log.warning "openssl не найден! Некоторые функции будут сгенерированы без него."
+if command -v file >/dev/null 2>&1; then
+    bashio::log.info "Архитектура бинаря:"
+    file /usr/bin/vaultwarden
 fi
 
-# ===== Чтение конфигурации из UI =====
+# ===== Чтение конфигурации =====
 DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
 ROCKET_PORT=$(bashio::config 'rocket_port' '80')
 ADMIN_TOKEN=$(bashio::config 'admin_token')
@@ -37,7 +52,7 @@ INVITATIONS_ALLOWED=$(bashio::config 'invitations_allowed' 'true')
 EMERGENCY_ACCESS_ALLOWED=$(bashio::config 'emergency_access_allowed' 'true')
 SENDS_ALLOWED=$(bashio::config 'sends_allowed' 'true')
 
-# ===== Генерация ADMIN_TOKEN, если не задан =====
+# ===== Генерация ADMIN_TOKEN =====
 if [[ -z "$ADMIN_TOKEN" ]]; then
     if command -v openssl >/dev/null 2>&1; then
         ADMIN_TOKEN=$(openssl rand -base64 48) || true
@@ -48,7 +63,7 @@ if [[ -z "$ADMIN_TOKEN" ]]; then
     fi
 fi
 
-# ===== Экспорт переменных окружения =====
+# ===== Экспорт переменных =====
 export DOMAIN ROCKET_PORT ADMIN_TOKEN DATA_FOLDER DATABASE_URL WEBSOCKET_ENABLED \
        SIGNUPS_ALLOWED INVITATIONS_ALLOWED EMERGENCY_ACCESS_ALLOWED SENDS_ALLOWED
 export ROCKET_ADDRESS="0.0.0.0"
@@ -68,13 +83,16 @@ bashio::log.info "SENDS_ALLOWED: $SENDS_ALLOWED"
 bashio::log.info "ADMIN_TOKEN: ${ADMIN_TOKEN:0:20}..."
 bashio::log.info "==========================="
 
-# ===== Диагностика перед запуском Vaultwarden =====
+# ===== Проверка доступности Vaultwarden =====
 bashio::log.info "Проверка доступа к бинарю Vaultwarden..."
 ls -l /usr/bin/vaultwarden || true
 
 bashio::log.info "Попытка выполнить /usr/bin/vaultwarden --version..."
-/usr/bin/vaultwarden --version || bashio::log.error "Выполнение --version завершилось с ошибкой"
+if ! /usr/bin/vaultwarden --version; then
+    bashio::log.error "Выполнение --version завершилось с ошибкой. Возможно, неправильная архитектура или отсутствуют зависимости!"
+fi
 
 # ===== Запуск Vaultwarden =====
 bashio::log.info "Исполняем /usr/bin/vaultwarden..."
 exec /usr/bin/vaultwarden
+
