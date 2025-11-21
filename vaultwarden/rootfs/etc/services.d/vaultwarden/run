@@ -1,6 +1,4 @@
 #!/usr/bin/with-contenv bashio
-set -e
-set -x
 
 # ===== INFO =====
 bashio::log.info "-----------------------------------------"
