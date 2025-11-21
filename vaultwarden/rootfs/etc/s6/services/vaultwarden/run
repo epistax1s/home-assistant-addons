@@ -1,8 +1,11 @@
 #!/usr/bin/with-contenv bashio
+
+bashio::log.info "Starting Vaultwarden add-on v1.0.5 (debug mode)..."
+
 set -e
 set -x   # печатать команды (можно убрать после отладки)
 
-bashio::log.info "Starting Vaultwarden add-on v1.0.5 (debug mode)..."
+bashio::log.info "after set -e and set -x"
 
 # config как у тебя
 DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
