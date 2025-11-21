@@ -8,8 +8,8 @@
 ARG BUILD_FROM=ghcr.io/home-assistant/amd64-addon-base:16.0.0
 FROM ${BUILD_FROM}
 
-COPY --from=vaultwarden/server:latest /vaultwarden /usr/bin/vaultwarden
-COPY --from=vaultwarden/server:latest /web-vault /web-vault
+COPY --from=vaultwarden/server:amd64 /vaultwarden /usr/bin/vaultwarden
+COPY --from=vaultwarden/server:amd64 /web-vault /web-vault
 
 # Копируем S6-структуру HA (правильную)
 COPY rootfs /
