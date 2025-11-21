@@ -21,7 +21,7 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем бинарь и веб-интерфейс из первой стадии
-COPY --from=vaultwarden /vaultwarden /opt/vaultwarden
+COPY --from=vaultwarden /vaultwarden /usr/bin/vaultwarden
 COPY --from=vaultwarden /web-vault /opt/web-vault
 
 # S6 и cont-init
