@@ -9,7 +9,7 @@ ARG BUILD_FROM=ghcr.io/home-assistant/amd64-addon-base:16.0.0  # Замени am
 FROM ${BUILD_FROM}
 
 # Копируем бинарник и веб-интерфейс Vaultwarden.
-COPY --from=vaultwarden/server:latest /app/vaultwarden /usr/bin/vaultwarden
+COPY --from=vaultwarden/server:latest /vaultwarden /usr/bin/vaultwarden
 COPY --from=vaultwarden/server:latest /web-vault /web-vault
 
 # Копируем S6-структуру (rootfs) в контейнер.
