@@ -11,14 +11,9 @@ FROM ${BUILD_FROM}
 COPY --from=vaultwarden/server:latest /vaultwarden /usr/bin/vaultwarden
 COPY --from=vaultwarden/server:latest /web-vault /web-vault
 
-# Копируем S6-структуру в НОВОЕ место
+# Копируем S6-структуру HA (правильную)
 COPY rootfs /
 
-# DEBUG: показать структуру S6 в логах аддона при сборке
-RUN echo "===== DEBUG S6 TREE =====" \
-    && find /etc/s6 -maxdepth 5 -print || true \
-    && echo "===== END DEBUG ====="
-
-# Делаем исполняемым (обязательно)
-RUN chmod -R +x /etc/cont-init.d /etc/s6/services || true
+# Делаем исполняемым (run + init)
+RUN chmod -R a+x /etc/cont-init.d /etc/services.d
 
