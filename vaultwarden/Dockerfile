@@ -1,11 +1,13 @@
+# Step 1: stage для Vaultwarden
 FROM vaultwarden/server:1.34.3 AS vaultwarden
 
-ARG BUILD_FROM=ghcr.io/hassio-addons/debian-base:9.0.0
-FROM ${BUILD_FROM}
+# Step 2: финальный образ HA add-on
+FROM ghcr.io/hassio-addons/debian-base:9.0.0
 
 # Set shell
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
+# Установим зависимости
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         bash \
@@ -18,13 +20,15 @@ RUN apt-get update && \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
+# Копируем бинарь и веб-интерфейс из первой стадии
 COPY --from=vaultwarden /vaultwarden /opt/vaultwarden
 COPY --from=vaultwarden /web-vault /opt/web-vault
 
+# S6 и cont-init
 COPY rootfs/ /
-
 RUN chmod -R a+x /etc/cont-init.d /etc/services.d
 
+# Аргументы сборки и метаданные
 ARG BUILD_ARCH
 ARG BUILD_DATE
 ARG BUILD_DESCRIPTION
@@ -51,4 +55,3 @@ LABEL \
     org.opencontainers.image.created=${BUILD_DATE} \
     org.opencontainers.image.revision=${BUILD_REF} \
     org.opencontainers.image.version=${BUILD_VERSION}
-
