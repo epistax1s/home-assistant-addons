@@ -42,8 +42,8 @@ fi
 DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
 ROCKET_PORT=$(bashio::config 'rocket_port' '80')
 ADMIN_TOKEN=$(bashio::config 'admin_token')
-DATA_FOLDER=$(bashio::config 'data_folder' '/config/vaultwarden')
-DATABASE_URL=$(bashio::config 'database_url' "sqlite://${DATA_FOLDER}/db.sqlite3")
+DATA_FOLDER="/data"
+DATABASE_URL="/data/db.sqlite3"
 WEBSOCKET_ENABLED=$(bashio::config 'websocket_enabled' 'true')
 SIGNUPS_ALLOWED=$(bashio::config 'signups_allowed' 'false')
 INVITATIONS_ALLOWED=$(bashio::config 'invitations_allowed' 'true')

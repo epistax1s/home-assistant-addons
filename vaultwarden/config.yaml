@@ -24,7 +24,7 @@ init: false  # Отключает Docker init (требуется для S6-over
 host_network: true  # Аддон использует сеть хоста (доступ по IP:80).
 
 map:
-  - addon_config:rw  # Монтирует /config/vaultwarden для данных.
+  - addon_data:rw  # Монтирует в /data внутри контейнера
   - ssl:rw  # Для SSL certs, если включишь HTTPS.
 
 ports:
@@ -34,8 +34,6 @@ options:  # Дефолты для UI (пользователь может изм
   domain: "http://192.168.0.133:80"  # С протоколом и портом (избежать ошибок парсинга).
   rocket_port: 80
   admin_token: ""
-  data_folder: "/config/vaultwarden"
-  database_url: "sqlite:///config/vaultwarden/db.sqlite3"
   websocket_enabled: true
   signups_allowed: false
   invitations_allowed: true
@@ -46,8 +44,6 @@ schema:  # Валидация UI (типы, ? = optional).
   domain: str  # Обязательный (UI не даст сохранить без него).
   rocket_port: port
   admin_token: password?
-  data_folder: str?
-  database_url: str?
   websocket_enabled: bool
   signups_allowed: bool
   invitations_allowed: bool
