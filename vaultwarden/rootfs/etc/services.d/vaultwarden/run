@@ -38,6 +38,19 @@ if command -v file >/dev/null 2>&1; then
     file /usr/bin/vaultwarden
 fi
 
+# ===== Отладка web-vault =====
+bashio::log.info "=== DEBUG WEB-VAULT ==="
+bashio::log.info "Текущая директория (PWD): $(pwd)"
+bashio::log.info "Содержимое /web-vault:"
+ls -la /web-vault || bashio::log.error "Папка /web-vault не существует!"
+if [[ -f "/web-vault/index.html" ]]; then
+    bashio::log.info "index.html найден — UI должен работать."
+    bashio::log.info "Размер папки: $(du -sh /web-vault)"
+else
+    bashio::log.error "index.html НЕ найден — UI сломан!"
+fi
+bashio::log.info "========================"
+
 # ===== Чтение конфигурации =====
 DOMAIN=$(bashio::config 'domain' 'http://192.168.0.133:80')
 ROCKET_PORT=$(bashio::config 'rocket_port' '80')
