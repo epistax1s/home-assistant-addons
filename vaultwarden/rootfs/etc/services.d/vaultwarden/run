@@ -62,6 +62,8 @@ SIGNUPS_ALLOWED=$(bashio::config 'signups_allowed' 'false')
 INVITATIONS_ALLOWED=$(bashio::config 'invitations_allowed' 'true')
 EMERGENCY_ACCESS_ALLOWED=$(bashio::config 'emergency_access_allowed' 'true')
 SENDS_ALLOWED=$(bashio::config 'sends_allowed' 'true')
+WEB_VAULT_FOLDER="/web-vault"
+WEB_VAULT_ENABLED="true"
 
 # ===== Генерация ADMIN_TOKEN =====
 if [[ -z "$ADMIN_TOKEN" ]]; then
@@ -75,9 +77,19 @@ if [[ -z "$ADMIN_TOKEN" ]]; then
 fi
 
 # ===== Экспорт переменных =====
-export DOMAIN ROCKET_PORT ADMIN_TOKEN DATA_FOLDER DATABASE_URL WEBSOCKET_ENABLED \
-       SIGNUPS_ALLOWED INVITATIONS_ALLOWED EMERGENCY_ACCESS_ALLOWED SENDS_ALLOWED
+export DOMAIN
+export SENDS_ALLOWED
+export EMERGENCY_ACCESS_ALLOWED
+export INVITATIONS_ALLOWED
+export SIGNUPS_ALLOWED
+export WEBSOCKET_ENABLED
+export DATABASE_URL
+export DATA_FOLDER
+export ADMIN_TOKEN
+export ROCKET_PORT
 export ROCKET_ADDRESS="0.0.0.0"
+export WEB_VAULT_FOLDER
+export WEB_VAULT_ENABLED
 
 # ===== Вывод для отладки =====
 bashio::log.info "=== DEBUG ENV EXPORTED ==="
