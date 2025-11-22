@@ -22,7 +22,7 @@ RUN apt-get update && \
 
 # Копируем бинарь и веб-интерфейс из первой стадии
 COPY --from=vaultwarden /vaultwarden /usr/bin/vaultwarden
-COPY --from=vaultwarden /web-vault /opt/web-vault
+COPY --from=vaultwarden /web-vault /web-vault
 
 # S6 и cont-init
 COPY rootfs/ /
